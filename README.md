@@ -1,1 +1,1 @@
-### A real-time collaborative platform for seamless document editing and communication
+### 실시간 협업 에디터 플랫폼
