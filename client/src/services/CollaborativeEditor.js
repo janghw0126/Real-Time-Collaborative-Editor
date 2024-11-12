@@ -5,6 +5,7 @@ function CollaborativeEditor() {
     const ws = useRef(null);
 
     useEffect(() => {
+        console.log("CollaborativeEditor mounted");
         // WebSocket 연결
         ws.current = new WebSocket("ws://localhost:8080/ws/edit");
 
