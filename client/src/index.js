@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import CollaborativeEditor from './services/CollaborativeEditor'; 
 import './index.css';
 import './index.css';
