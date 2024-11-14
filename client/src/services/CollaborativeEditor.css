@@ -1,7 +1,7 @@
 /* 기본적인 페이지 스타일 */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7fc;
+    background-color: #f1f5f9;
     color: #333;
     padding: 20px;
     margin: 0;
@@ -10,12 +10,17 @@ body {
 /* 전체 컨테이너 */
 .container {
     width: 80%;
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    background-color: white;
+    background-color: #fff;
     padding: 30px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.container:hover {
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
 }
 
 /* 헤더 스타일 */
@@ -23,71 +28,115 @@ h1 {
     text-align: center;
     color: #4caf50;
     font-size: 2.5em;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* 회의 정보 섹션 */
+.meeting-info {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
-/* 각 섹션 제목 스타일 */
-h3 {
-    font-size: 1.8em;
-    color: #3b3b3b;
-    margin-bottom: 10px;
+.meeting-info label {
     font-weight: 600;
+    color: #444;
+    display: flex;
+    align-items: center;
+}
+
+.meeting-info input[type="date"],
+.meeting-info input[type="text"] {
+    margin-left: 10px;
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fafafa;
+    width: 60%;
+    transition: border-color 0.3s ease;
+}
+
+.meeting-info input[type="date"]:focus,
+.meeting-info input[type="text"]:focus {
+    border-color: #4caf50;
+}
+
+/* 각 섹션 스타일 */
+.agenda-section, .notes-section, .results-section {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #fafafa;
+    border-radius: 8px;
+}
+
+.agenda-section h3, .notes-section h3, .results-section h3 {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 15px;
 }
 
 /* 텍스트 영역 스타일 */
 textarea {
     width: 100%;
     padding: 15px;
-    margin-bottom: 30px;
     font-size: 1.1em;
     line-height: 1.5em;
     border-radius: 8px;
     border: 1px solid #ccc;
     background-color: #fafafa;
-    box-sizing: border-box;
     resize: vertical;
-    min-height: 150px;
     transition: all 0.3s ease;
+    margin-bottom: 15px;
 }
 
-/* 텍스트 영역 포커스 시 스타일 */
 textarea:focus {
     border-color: #4caf50;
     background-color: #f0f9f4;
     outline: none;
 }
 
-/* 버튼 스타일 (나중에 추가할 수 있음) */
-button {
+.agenda-section textarea {
+    background-color: #e8f5e9;
+}
+
+.notes-section textarea {
+    background-color: #fef7e0;
+}
+
+.results-section textarea {
+    background-color: #f0f9f4;
+}
+
+/* 버튼 스타일 */
+.save-button {
+    display: block;
+    margin: 20px auto 0;
     background-color: #4caf50;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    border-radius: 8px;
     font-size: 1.1em;
+    cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-button:hover {
+.save-button:hover {
     background-color: #45a049;
+    transform: translateY(-2px);
 }
 
-/* 회의록 안건과 내용 구분 */
-.agenda-section {
-    background-color: #e0f7fa;
-    padding: 20px;
-    border-left: 5px solid #4caf50;
-    margin-bottom: 20px;
-    border-radius: 8px;
+.save-button:active {
+    transform: translateY(2px);
 }
 
-.notes-section {
-    background-color: #fff3e0;
-    padding: 20px;
-    border-left: 5px solid #ff9800;
-    margin-bottom: 20px;
-    border-radius: 8px;
+.save-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
 }
 
 /* 작은 화면에서 스타일 조정 */
@@ -101,11 +150,11 @@ button:hover {
         font-size: 2em;
     }
 
-    h3 {
-        font-size: 1.5em;
-    }
-
     textarea {
         font-size: 1em;
+    }
+
+    .meeting-info label {
+        font-size: 0.9em;
     }
 }

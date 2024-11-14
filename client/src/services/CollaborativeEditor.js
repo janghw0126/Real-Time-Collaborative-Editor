@@ -3,8 +3,11 @@ import './CollaborativeEditor.css';
 
 function CollaborativeEditor() {
     // 상태변수 분류
-    const [agenda, setAgenda] = useState(''); // 회의 안건 내용
+    const [agenda, setAgenda] = useState(''); // 회의 안건
     const [notes, setNotes] = useState(''); // 회의 내용
+    const [results,setResults] = useState(''); // 회의 결과
+    const [meetingDate, setMeetingDate] = useState(new Date().toISOString().slice(0, 10)); // 회의 날짜
+    const [attendees, setAttendees] = useState(''); // 참석자 명단 // 회의 내용
     const ws = useRef(null); // WebSocket 객체를 ref로 저장하여 연결 유지
 
     useEffect(() => {
@@ -22,6 +25,10 @@ function CollaborativeEditor() {
             } else if (message.type === "notes") {
                 setNotes(message.content); // 회의 내용 업데이트
             }
+            else if (message.type === "results") {
+                setResults(message.content); // 회의 내용 업데이트
+            }
+
         };
 
         // WebSocket 연결이 끊어졌을 때
@@ -44,7 +51,10 @@ function CollaborativeEditor() {
             setAgenda(updatedText);
         } else if (type === "notes") {
             setNotes(updatedText);
+        } else if (type === "results") {
+            setResults(updatedText);
         }
+
 
         // WebSocket 연결이 열려 있으면 텍스트를 서버로 전송
         if (ws.current.readyState === WebSocket.OPEN) {
@@ -57,35 +67,58 @@ function CollaborativeEditor() {
     };
 
     return (
-        <div>
-            <h1>회의록🤪</h1>
-            <div>
-            <text>✅날짜 넣기</text>
-            <br></br>
-            <text>✅참석자 명단 넣기(닉네임)</text>
+        <div className="container">
+            <h1>회의록📋</h1>
+            <div className="meeting-info">
+                <label>
+                    <strong>📅 회의 날짜:</strong>
+                    <input
+                        type="date"
+                        value={meetingDate}
+                        onChange={(e) => setMeetingDate(e.target.value)}
+                    />
+                </label>
+                <br></br>
+                <label>
+                    <strong>👥 참석자 명단:</strong>
+                    <input
+                        type="text"
+                        placeholder="참석자 이름 입력 (예: 홍길동, 김철수)"
+                        value={attendees}
+                        onChange={(e) => setAttendees(e.target.value)}
+                    />
+                </label>
             </div>
-            <h3>🌱회의 안건</h3>
-            <text>회의 때 논의할 안건들을 기입하세요.</text>
-            <br></br>
-            <br></br>
-            <textarea
-                value={agenda} // 회의 안건 상태 값 바인딩
-                onChange={(e) => handleChange(e, "agenda")} // 텍스트 변경 시 WebSocket으로 데이터 전송
-                placeholder="여기에 회의록을 작성하세요..."
-                rows="10"
-                cols="50"
-            />
-            <h3>✏️회의록</h3>
-            <text>회의 중 논의된 내용들을 기입해주세요.</text>
-            <br></br>
-            <br></br>
-            <textarea
-                value={notes} // 회의 내용 상태 값 바인딩
-                onChange={(e) => handleChange(e, "notes")} // 텍스트 변경 시 WebSocket으로 데이터 전송
-                placeholder="여기에 회의록을 작성하세요..."
-                rows="10"
-                cols="50"
-            />
+            <div className="agenda-section">
+                <h3>🌱 회의 안건</h3>
+                <textarea
+                    value={agenda}
+                    onChange={(e) => handleChange(e, "agenda")}
+                    placeholder="회의 안건을 여기에 작성하세요!"
+                    rows="6"
+                />
+            </div>
+            <div className="notes-section">
+                <h3>✏️ 회의록</h3>
+                <textarea
+                    value={notes}
+                    onChange={(e) => handleChange(e, "notes")}
+                    placeholder="회의 내용을 여기에 작성하세요!"
+                    rows="12"
+                />
+            </div>
+            <div className="results-section">
+                <h3>☑️ 회의 결과</h3>
+                <textarea
+                    value={results}
+                    onChange={(e) => handleChange(e, "results")}
+                    placeholder="회의 결과를 여기에 작성하세요!"
+                    rows="12"
+                />
+            </div>
+
+
+            <button className="save-button">저장하기</button>
         </div>
     );
 }
