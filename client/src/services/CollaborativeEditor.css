@@ -1,0 +1,111 @@
+/* 기본적인 페이지 스타일 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    padding: 20px;
+    margin: 0;
+}
+
+/* 전체 컨테이너 */
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* 헤더 스타일 */
+h1 {
+    text-align: center;
+    color: #4caf50;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+/* 각 섹션 제목 스타일 */
+h3 {
+    font-size: 1.8em;
+    color: #3b3b3b;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+/* 텍스트 영역 스타일 */
+textarea {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+    line-height: 1.5em;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #fafafa;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 150px;
+    transition: all 0.3s ease;
+}
+
+/* 텍스트 영역 포커스 시 스타일 */
+textarea:focus {
+    border-color: #4caf50;
+    background-color: #f0f9f4;
+    outline: none;
+}
+
+/* 버튼 스타일 (나중에 추가할 수 있음) */
+button {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* 회의록 안건과 내용 구분 */
+.agenda-section {
+    background-color: #e0f7fa;
+    padding: 20px;
+    border-left: 5px solid #4caf50;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+.notes-section {
+    background-color: #fff3e0;
+    padding: 20px;
+    border-left: 5px solid #ff9800;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+/* 작은 화면에서 스타일 조정 */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    h3 {
+        font-size: 1.5em;
+    }
+
+    textarea {
+        font-size: 1em;
+    }
+}

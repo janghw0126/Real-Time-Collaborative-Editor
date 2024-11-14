@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './CollaborativeEditor.css';
 
 function CollaborativeEditor() {
-    const [text, setText] = useState(''); // 회의록 내용
+    // 상태변수 분류
+    const [agenda, setAgenda] = useState(''); // 회의 안건 내용
+    const [notes, setNotes] = useState(''); // 회의 내용
     const ws = useRef(null); // WebSocket 객체를 ref로 저장하여 연결 유지
 
     useEffect(() => {
@@ -12,7 +15,13 @@ function CollaborativeEditor() {
 
         // 서버에서 메시지가 오면 해당 텍스트를 업데이트
         ws.current.onmessage = (event) => {
-            setText(event.data); // 서버에서 받은 데이터를 텍스트 영역에 반영
+            // JSON 데이터 파싱
+            const message = JSON.parse(event.data);
+            if (message.type === "agenda") {
+                setAgenda(message.content); // 회의 안건 업데이트
+            } else if (message.type === "notes") {
+                setNotes(message.content); // 회의 내용 업데이트
+            }
         };
 
         // WebSocket 연결이 끊어졌을 때
@@ -27,17 +36,29 @@ function CollaborativeEditor() {
     }, []);
 
     // 텍스트 변경 시 실시간으로 WebSocket으로 전송
-    const handleChange = (e) => {
-        setText(e.target.value); // 입력된 텍스트 상태 업데이트
+    const handleChange = (e,type) => {
+        const updatedText = e.target.value; // 입력된 텍스트 상태 업데이트
+
+        // 해당 타입에 맞는 상태 업데이트
+        if (type === "agenda") {
+            setAgenda(updatedText);
+        } else if (type === "notes") {
+            setNotes(updatedText);
+        }
+
+        // WebSocket 연결이 열려 있으면 텍스트를 서버로 전송
         if (ws.current.readyState === WebSocket.OPEN) {
-            // WebSocket 연결이 열려 있으면 텍스트를 서버로 전송
-            ws.current.send(e.target.value);
+            const message = JSON.stringify({
+                type: type, // 데이터의 타입 (agenda 또는 notes)
+                content: updatedText, // 텍스트 내용
+            });
+            ws.current.send(message); // 서버로 전송
         }
     };
 
     return (
         <div>
-            <h1>오늘 회의🤪</h1>
+            <h1>회의록🤪</h1>
             <div>
             <text>✅날짜 넣기</text>
             <br></br>
@@ -48,8 +69,8 @@ function CollaborativeEditor() {
             <br></br>
             <br></br>
             <textarea
-                value={text} // 텍스트 상태 값 바인딩
-                onChange={handleChange} // 텍스트 변경 시 WebSocket으로 데이터 전송
+                value={agenda} // 회의 안건 상태 값 바인딩
+                onChange={(e) => handleChange(e, "agenda")} // 텍스트 변경 시 WebSocket으로 데이터 전송
                 placeholder="여기에 회의록을 작성하세요..."
                 rows="10"
                 cols="50"
@@ -59,8 +80,8 @@ function CollaborativeEditor() {
             <br></br>
             <br></br>
             <textarea
-                value={text} // 텍스트 상태 값 바인딩
-                onChange={handleChange} // 텍스트 변경 시 WebSocket으로 데이터 전송
+                value={notes} // 회의 내용 상태 값 바인딩
+                onChange={(e) => handleChange(e, "notes")} // 텍스트 변경 시 WebSocket으로 데이터 전송
                 placeholder="여기에 회의록을 작성하세요..."
                 rows="10"
                 cols="50"

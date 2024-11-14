@@ -47,8 +47,7 @@ public class WebSocketMeeting {
         // 모든 클라이언트에게 메시지를 전송
         for (Session s : clients) {
             logger.info("send data : {}", message);
-
-            s.getBasicRemote().sendText(message);
+            s.getBasicRemote().sendText(message); // 메시지를 타입별로 전송
         }
     }
 
