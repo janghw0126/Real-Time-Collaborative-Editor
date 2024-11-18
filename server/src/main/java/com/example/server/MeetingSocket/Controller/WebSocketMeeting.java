@@ -1,4 +1,4 @@
-package com.example.server.Socket;
+package com.example.server.MeetingSocket.Controller;
 
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
