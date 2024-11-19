@@ -8,7 +8,7 @@ function CollaborativeEditor() {
     const [meetingDate, setMeetingDate] = useState(new Date().toISOString().slice(0, 10));
     const [attendees, setAttendees] = useState('');
     const ws = useRef(null);
-    const debounceTimeout = useRef(null);
+    const debounceTimeout = useRef(null); // WebSocket 전송 지연 시간
 
     useEffect(() => {
         ws.current = new WebSocket("ws://localhost:8080/socket/meeting");
