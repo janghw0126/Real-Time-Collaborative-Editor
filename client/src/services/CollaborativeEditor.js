@@ -8,8 +8,7 @@ function CollaborativeEditor() {
     const [meetingDate, setMeetingDate] = useState(new Date().toISOString().slice(0, 10));
     const [attendees, setAttendees] = useState('');
     const ws = useRef(null);
-    const isComposing = useRef(false); 
-    const debounceTimeout = useRef(null); // WebSocket 전송 지연 시간
+    const debounceTimeout = useRef(null);
 
     useEffect(() => {
         ws.current = new WebSocket("ws://localhost:8080/socket/meeting");
@@ -25,32 +24,38 @@ function CollaborativeEditor() {
         return () => ws.current.close();
     }, []);
 
-    const handleComposition = (event) => {
-        isComposing.current = event.type !== 'compositionend';
-
-        // 조합이 끝났을 때 최종 상태를 서버에 전송
-        if (event.type === 'compositionend' && ws.current.readyState === WebSocket.OPEN) {
-            const type = event.target.getAttribute("data-type");
-            const message = JSON.stringify({ type, content: event.target.value });
+    const sendMessage = (content, type) => {
+        if (ws.current.readyState === WebSocket.OPEN) {
+            const message = JSON.stringify({ type, content });
             ws.current.send(message);
         }
     };
 
-    const handleChange = (e, type) => {
-        const updatedText = e.target.value;
+    const handleKeyDown = (event, type) => {
+        // IME 입력 상태를 확인하여 조합 중일 때 전송하지 않음
+        if (event.key === 'Enter' && event.nativeEvent.isComposing === false) {
+            const content = event.target.value;
+            sendMessage(content, type);
+
+            // 상태 업데이트
+            if (type === "agenda") setAgenda(content);
+            else if (type === "notes") setNotes(content);
+            else if (type === "results") setResults(content);
+        }
+    };
+
+    const handleChange = (event, type) => {
+        const updatedText = event.target.value;
 
         if (type === "agenda") setAgenda(updatedText);
         else if (type === "notes") setNotes(updatedText);
         else if (type === "results") setResults(updatedText);
 
+        // WebSocket 메시지 전송 지연 처리
         if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 
         debounceTimeout.current = setTimeout(() => {
-            // 한글 조합 중이 아닐 때마다 WebSocket 전송
-            if (ws.current.readyState === WebSocket.OPEN) {
-                const message = JSON.stringify({ type, content: updatedText });
-                ws.current.send(message);
-            }
+            sendMessage(updatedText, type);
         }, 200); // 입력 후 200ms 뒤 전송
     };
 
@@ -83,8 +88,7 @@ function CollaborativeEditor() {
                     data-type="agenda"
                     value={agenda}
                     onChange={(e) => handleChange(e, "agenda")}
-                    onCompositionStart={handleComposition}
-                    onCompositionEnd={handleComposition}
+                    onKeyDown={(e) => handleKeyDown(e, "agenda")}
                     placeholder="회의 안건을 여기에 작성하세요!"
                     rows="6"
                 />
@@ -95,8 +99,7 @@ function CollaborativeEditor() {
                     data-type="notes"
                     value={notes}
                     onChange={(e) => handleChange(e, "notes")}
-                    onCompositionStart={handleComposition}
-                    onCompositionEnd={handleComposition}
+                    onKeyDown={(e) => handleKeyDown(e, "notes")}
                     placeholder="회의 내용을 여기에 작성하세요!"
                     rows="12"
                 />
@@ -107,8 +110,7 @@ function CollaborativeEditor() {
                     data-type="results"
                     value={results}
                     onChange={(e) => handleChange(e, "results")}
-                    onCompositionStart={handleComposition}
-                    onCompositionEnd={handleComposition}
+                    onKeyDown={(e) => handleKeyDown(e, "results")}
                     placeholder="회의 결과를 여기에 작성하세요!"
                     rows="12"
                 />
