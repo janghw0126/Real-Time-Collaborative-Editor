@@ -1,4 +1,4 @@
-package com.example.server.Config;
+package com.example.server.MeetingSocket.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
