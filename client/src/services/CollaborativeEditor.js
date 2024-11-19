@@ -23,7 +23,6 @@ function CollaborativeEditor() {
         ws.current.onclose = () => console.log("WebSocket connection closed");
         return () => ws.current.close();
     }, []);
-
     const sendMessage = (content, type) => {
         if (ws.current.readyState === WebSocket.OPEN) {
             const message = JSON.stringify({ type, content });
@@ -115,7 +114,6 @@ function CollaborativeEditor() {
                     rows="12"
                 />
             </div>
-
             <button className="save-button">저장하기</button>
         </div>
     );
