@@ -1,4 +1,4 @@
-package com.example.server.MeetingSocket.Controller;
+package com.example.server.MeetingSocket.Service;
 
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
@@ -15,6 +15,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 // websoket 서버 구현
+// controller는 RestAPI 이므로 http 요청-응답 상태이다.
+// 그러므로 양방향 통신인 웹소켓에서는 http가 아니라 ws를 사용하기 때문에 controller가 필요없다.
+// 따라서 service 패키지에서 바로 데이터를 주고 받으므로 이 패키지에 두는 것이 맞음
 @Service
 @ServerEndpoint("/socket/meeting")
 public class WebSocketMeeting {

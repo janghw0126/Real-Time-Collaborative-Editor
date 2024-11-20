@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import CollaborativeEditor from './services/CollaborativeEditor'; 
+import CollaborativeEditor from './services/MeetingSocket/CollaborativeEditor'; 
 import './index.css';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
