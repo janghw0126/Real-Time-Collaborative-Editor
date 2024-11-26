@@ -10,12 +10,13 @@ function CollaborativeEditor() {
     const [nicknameMessages, setNicknameMessages] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(true);
     const [isParticipantsListVisible, setIsParticipantsListVisible] = useState(false);
+    const [leaveMessages, setLeaveMessages] = useState([]); // 나간 메시지 상태 관리
     const ws = useRef(null);
     const debounceTimeout = useRef(null);
 
+    // 닉네임 변경 처리 및 참여 상태 갱신
     useEffect(() => {
         if (nicknameInput.trim() !== '') {
-            // WebSocket 연결 설정
             ws.current = new WebSocket("ws://localhost:8080/socket/meeting");
 
             ws.current.onmessage = (event) => {
@@ -26,23 +27,31 @@ function CollaborativeEditor() {
                     else if (message.type === "results") setResults(message.content);
                 } catch (error) {
                     if (event.data.startsWith("nicknames:")) {
+                        // 서버로부터 닉네임 목록 받기
                         const nicknameList = event.data.substring(10).split(", ");
-                        setNicknameMessages(nicknameList); // 서버에서 갱신된 목록으로 업데이트
+                        setNicknameMessages(nicknameList);  // 접속한 순서대로 리스트 업데이트
                     } else if (event.data.startsWith("leave:")) {
                         const leavingNickname = event.data.substring(6);
                         setNicknameMessages((prevMessages) =>
                             prevMessages.filter((nickname) => nickname !== leavingNickname)
                         );
-                        setNicknameMessages((prevMessages) => [
+                        setLeaveMessages((prevMessages) => [
                             ...prevMessages,
-                            `${leavingNickname}님이 회의에 나갔습니다`,
+                            `${leavingNickname}`,
                         ]);
-                    } else {
+                    } else if (event.data.startsWith("join:")) {
+                        const joiningNickname = event.data.substring(5);
+                        setNicknameMessages((prevMessages) => [...prevMessages, joiningNickname]);
+                        setLeaveMessages((prevMessages) => [
+                            ...prevMessages,
+                            `${joiningNickname}님이 회의에 참여하였습니다.`,
+                        ]);
+                    }
+                    else {
                         console.error("Unrecognized message format:", event.data);
                     }
                 }
             };
-            
 
             ws.current.onclose = () => console.log("WebSocket connection closed");
 
@@ -50,6 +59,7 @@ function CollaborativeEditor() {
         }
     }, [nicknameInput]);
 
+    // 닉네임 설정 후 참여 상태 갱신
     const handleModalSubmit = () => {
         if (nicknameInput.trim() && ws.current.readyState === WebSocket.OPEN) {
             if (nicknameMessages.includes(nicknameInput.trim())) {
@@ -60,7 +70,6 @@ function CollaborativeEditor() {
             setIsModalOpen(false);
         }
     };
-    
 
     const sendMessage = (content, type) => {
         if (ws.current.readyState === WebSocket.OPEN) {
@@ -112,6 +121,12 @@ function CollaborativeEditor() {
             prevMessages.filter(nickname => nickname !== nicknameInput.trim())
         );
 
+        // 나간 메시지를 leaveMessages에 추가
+        setLeaveMessages((prevMessages) => [
+            ...prevMessages,
+            `${nicknameInput.trim()}님이 회의를 나갔습니다.`,
+        ]);
+
         // 닉네임 설정 모달로 돌아가도록 상태 변경
         setIsModalOpen(true);
         setNicknameInput(''); // 닉네임 입력 필드를 비움
@@ -119,15 +134,17 @@ function CollaborativeEditor() {
 
     return (
         <div className="collaborative-editor">
-            {/* 회의 참여자 섹션 */}
+            {/* 참여 상태 표시: 참여자 및 나간 메시지 함께 표시 */}
             <section className="participants-section">
                 <h2>회의 참여 상태</h2>
                 <ul className="participant-list">
                     {nicknameMessages.map((nickname, index) => (
                         <li key={index}>{`${nickname}님이 회의에 참여하였습니다.`}</li>
                     ))}
+                    {leaveMessages.map((message, index) => (
+                        <li key={nicknameMessages.length + index}>{message}</li>
+                    ))}
                 </ul>
-                <br></br>
                 <button className="leave-button" onClick={handleLeaveMeeting}>나가기</button>
             </section>
 
