@@ -1,4 +1,56 @@
-/* 기본적인 페이지 스타일 */
+/* 기존 모달 및 기본 스타일 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 300px;
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.modal-content input {
+    text-align: center;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.modal-content button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modal-content button:hover {
+    background-color: #45a049;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f1f5f9;
@@ -7,8 +59,8 @@ body {
     margin: 0;
 }
 
-/* 전체 컨테이너 */
 .container {
+    flex-direction: row; /* 왼쪽-오른쪽 섹션 나열 */
     width: 80%;
     max-width: 900px;
     margin: 0 auto;
@@ -17,13 +69,100 @@ body {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     transition: all 0.3s ease;
+    display: flex; /* 컨테이너에 Flexbox 적용 */
+    justify-content: space-between; /* 영역 간 간격 조정 */
+    gap: 20px; /* 두 섹션 간 간격 추가 */
 }
 
 .container:hover {
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
 }
 
-/* 헤더 스타일 */
+/* 참여 메시지를 박스로 분리 */
+.participants-box {
+    width: 20%; /* 적절한 너비 설정 */
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.participants-box h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #4caf50;
+    text-align: center;
+}
+
+.participants-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.participants-box li {
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.collaborative-editor {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* 섹션 간 간격 */
+    padding: 20px;
+}
+
+.participants-section {
+    width: 30%; /* 좌측 박스 비율 */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.participants-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+.editor-section {
+    width: 70%; /* 우측 박스 비율 */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #ffffff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 왼쪽 섹션 */
+.left-section {
+    width: 25%;
+}
+
+/* 오른쪽 섹션 */
+.right-section {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 닉네임 및 메시지 목록 */
+.nickname-messages ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nickname-messages li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
 h1 {
     text-align: center;
     color: #4caf50;
@@ -33,7 +172,6 @@ h1 {
     letter-spacing: 2px;
 }
 
-/* 회의 정보 섹션 */
 .meeting-info {
     display: flex;
     justify-content: space-between;
@@ -64,7 +202,6 @@ h1 {
     border-color: #4caf50;
 }
 
-/* 각 섹션 스타일 */
 .agenda-section, .notes-section, .results-section {
     margin-top: 20px;
     padding: 10px;
@@ -78,7 +215,6 @@ h1 {
     margin-bottom: 15px;
 }
 
-/* 텍스트 영역 스타일 */
 textarea {
     width: 100%;
     box-sizing: border-box;
@@ -111,7 +247,6 @@ textarea:focus {
     background-color: #f0f9f4;
 }
 
-/* 버튼 스타일 */
 .save-button {
     display: block;
     margin: 20px auto 0;
@@ -140,11 +275,11 @@ textarea:focus {
     box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
 }
 
-/* 작은 화면에서 스타일 조정 */
 @media screen and (max-width: 768px) {
     .container {
         width: 95%;
         padding: 15px;
+        flex-direction: column; /* 작은 화면에서는 세로로 배치 */
     }
 
     h1 {
