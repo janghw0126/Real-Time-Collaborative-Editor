@@ -9,51 +9,60 @@ function CollaborativeEditor() {
     const [nicknameInput, setNicknameInput] = useState('');
     const [nicknameMessages, setNicknameMessages] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(true);
-    const [isParticipantsListVisible, setIsParticipantsListVisible] = useState(false); // 토글 상태 추가
+    const [isParticipantsListVisible, setIsParticipantsListVisible] = useState(false);
     const ws = useRef(null);
     const debounceTimeout = useRef(null);
 
     useEffect(() => {
-        ws.current = new WebSocket("ws://localhost:8080/socket/meeting");
+        if (nicknameInput.trim() !== '') {
+            // WebSocket 연결 설정
+            ws.current = new WebSocket("ws://localhost:8080/socket/meeting");
+
+            ws.current.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.type === "agenda") setAgenda(message.content);
+                    else if (message.type === "notes") setNotes(message.content);
+                    else if (message.type === "results") setResults(message.content);
+                } catch (error) {
+                    // JSON 파싱 실패한 메시지 처리
+                    if (event.data.startsWith("nicknames:")) {
+                        const nicknameList = event.data.substring(10).split(", ");
+                        setNicknameMessages((prevMessages) => {
+                            // 1. 기존 닉네임만 추출
+                            const existingNicknames = prevMessages;
     
-        ws.current.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                if (message.type === "agenda") setAgenda(message.content);
-                else if (message.type === "notes") setNotes(message.content);
-                else if (message.type === "results") setResults(message.content);
-            } catch (error) {
-                // JSON 파싱 실패한 메시지 처리
-                if (event.data.startsWith("nicknames:")) {
-                    const nicknameList = event.data.substring(10).split(", ");
-                    setNicknameMessages((prevMessages) => {
-                        // 1. 기존 닉네임만 추출
-                        const existingNicknames = prevMessages;
+                            // 2. 새로운 닉네임 중 중복되지 않은 닉네임만 추가
+                            const uniqueNicknames = nicknameList.filter(
+                                (nickname) => !existingNicknames.includes(nickname)
+                            );
     
-                        // 2. 새로운 닉네임 중 중복되지 않은 닉네임만 추가
-                        const uniqueNicknames = nicknameList.filter(
-                            (nickname) => !existingNicknames.includes(nickname)
+                            // 3. 기존 메시지에 새로운 닉네임 추가
+                            return [...prevMessages, ...uniqueNicknames];
+                        });
+                    } else if (event.data.startsWith("leave:")) {
+                        const leavingNickname = event.data.substring(6);
+                        setNicknameMessages((prevMessages) =>
+                            prevMessages.filter((nickname) => nickname !== leavingNickname)
                         );
-    
-                        // 3. 기존 메시지에 새로운 닉네임 추가
-                        return [...prevMessages, ...uniqueNicknames];
-                    });
-                } else {
-                    console.error("Unrecognized message format:", event.data);
+                    } else {
+                        console.error("Unrecognized message format:", event.data);
+                    }
                 }
-            }
-        };
-    
-        ws.current.onclose = () => console.log("WebSocket connection closed");
-        return () => ws.current.close();
-    }, []);    
+            };
+
+            ws.current.onclose = () => console.log("WebSocket connection closed");
+
+            return () => ws.current.close();
+        }
+    }, [nicknameInput]);
 
     const handleModalSubmit = () => {
         if (nicknameInput.trim() && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(`nickname:${nicknameInput.trim()}`);
             setIsModalOpen(false);
         }
-    };    
+    };
 
     const sendMessage = (content, type) => {
         if (ws.current.readyState === WebSocket.OPEN) {
@@ -88,7 +97,26 @@ function CollaborativeEditor() {
     };
 
     const toggleParticipantsList = () => {
-        setIsParticipantsListVisible(prevState => !prevState); // 토글 상태 변경
+        setIsParticipantsListVisible(prevState => !prevState);
+    };
+
+    const handleLeaveMeeting = () => {
+        // 나가는 메시지를 서버에 전송
+        if (ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(`leave:${nicknameInput.trim()}`);
+        }
+
+        // WebSocket 연결 종료
+        ws.current.close();
+
+        // 참여자 목록에서 해당 닉네임 제거
+        setNicknameMessages((prevMessages) => 
+            prevMessages.filter(nickname => nickname !== nicknameInput.trim())
+        );
+
+        // 닉네임 설정 모달로 돌아가도록 상태 변경
+        setIsModalOpen(true);
+        setNicknameInput(''); // 닉네임 입력 필드를 비움
     };
 
     return (
@@ -101,6 +129,7 @@ function CollaborativeEditor() {
                         <li key={index}>{`${nickname}님이 회의에 참여하였습니다.`}</li>
                     ))}
                 </ul>
+                <button className="leave-button" onClick={handleLeaveMeeting}>나가기</button>
             </section>
 
             {/* 회의록 섹션 */}
