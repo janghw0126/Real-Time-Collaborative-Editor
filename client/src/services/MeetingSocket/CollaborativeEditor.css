@@ -387,6 +387,27 @@ textarea:focus {
     box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
 }
 
+/* 나가기 버튼 스타일 */
+.leave-button {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.leave-button:hover {
+    background-color: #e04345;
+}
+
+.leave-button:active {
+    background-color: #c03638;
+}
+
+
 @media screen and (max-width: 768px) {
     .container {
         width: 95%;
