@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,17 +22,23 @@ public class WebSocketMeeting {
     private static Map<Session, String> sessionNicknameMap = new ConcurrentHashMap<>();
     private static Logger logger = LoggerFactory.getLogger(WebSocketMeeting.class);
 
+    // 새로운 클라이언트가 접속할 때 호출됩니다.
     @OnOpen
     public void onOpen(Session session) {
         logger.info("New session connected: {}", session);
         clients.add(session);
+
+        // 새로 접속한 클라이언트에게 현재 참여자 목록을 전송
+        sendCurrentParticipants(session);
     }
 
+    // 클라이언트로부터 메시지를 받았을 때 호출됩니다.
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
         logger.info("Message received: {}", message);
 
         if (message.startsWith("nickname:")) {
+            // 닉네임 설정
             String nickname = message.substring(9).trim();
 
             if (sessionNicknameMap.containsValue(nickname)) {
@@ -44,22 +49,25 @@ public class WebSocketMeeting {
             sessionNicknameMap.put(session, nickname);
             logger.info("New nickname added: {}", nickname);
 
-            // 브로드캐스트로 닉네임 업데이트
+            // 닉네임 업데이트를 브로드캐스트
             broadcast("nicknames:" + String.join(", ", sessionNicknameMap.values()));
-
         } else if (message.startsWith("leave:")) {
+            // 클라이언트가 나갈 때 처리
             handleClientLeave(session);
         } else {
-            broadcast(message); // 일반 메시지 브로드캐스팅
+            // 일반 메시지 브로드캐스팅
+            broadcast(message);
         }
     }
 
+    // 클라이언트가 소켓을 닫을 때 호출됩니다.
     @OnClose
     public void onClose(Session session) {
         logger.info("Session closed: {}", session);
         handleClientLeave(session);
     }
 
+    // 클라이언트가 회의를 떠났을 때 처리하는 메서드
     private void handleClientLeave(Session session) {
         String nickname = sessionNicknameMap.remove(session);
         if (nickname != null) {
@@ -67,7 +75,9 @@ public class WebSocketMeeting {
             clients.remove(session);
 
             try {
+                // 회의에서 나갔음을 브로드캐스트
                 broadcast("leave:" + nickname + "님이 회의에서 나갔습니다.");
+                // 참여자 목록을 다시 브로드캐스트
                 broadcast("nicknames:" + String.join(", ", sessionNicknameMap.values()));
             } catch (IOException e) {
                 logger.error("Error broadcasting leave message", e);
@@ -75,6 +85,7 @@ public class WebSocketMeeting {
         }
     }
 
+    // 모든 클라이언트에게 메시지를 브로드캐스트하는 메서드
     private void broadcast(String message) throws IOException {
         synchronized (clients) {
             for (Session client : clients) {
@@ -82,6 +93,16 @@ public class WebSocketMeeting {
                     client.getBasicRemote().sendText(message);
                 }
             }
+        }
+    }
+
+    // 새로 접속한 클라이언트에게 현재 참여자 목록을 전송하는 메서드
+    private void sendCurrentParticipants(Session session) {
+        try {
+            // 현재 참여자 목록을 전송
+            session.getBasicRemote().sendText("nicknames:" + String.join(", ", sessionNicknameMap.values()));
+        } catch (IOException e) {
+            logger.error("Error sending current participants", e);
         }
     }
 }

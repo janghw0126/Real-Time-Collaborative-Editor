@@ -17,8 +17,9 @@ function CollaborativeEditor() {
     // 닉네임 변경 처리 및 참여 상태 갱신
     useEffect(() => {
         if (nicknameInput.trim() !== '') {
+            // 웹소켓 연결
             ws.current = new WebSocket("ws://localhost:8080/socket/meeting");
-
+    
             ws.current.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
@@ -52,13 +53,13 @@ function CollaborativeEditor() {
                     }
                 }
             };
-
+    
             ws.current.onclose = () => console.log("WebSocket connection closed");
-
+    
             return () => ws.current.close();
         }
     }, [nicknameInput]);
-
+    
     // 닉네임 설정 후 참여 상태 갱신
     const handleModalSubmit = () => {
         if (nicknameInput.trim() && ws.current.readyState === WebSocket.OPEN) {
@@ -69,7 +70,7 @@ function CollaborativeEditor() {
             ws.current.send(`nickname:${nicknameInput.trim()}`);
             setIsModalOpen(false);
         }
-    };
+    };    
 
     const sendMessage = (content, type) => {
         if (ws.current.readyState === WebSocket.OPEN) {
