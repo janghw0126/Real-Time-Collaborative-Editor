@@ -146,6 +146,7 @@ function CollaborativeEditor() {
                         <li key={nicknameMessages.length + index}>{message}</li>
                     ))}
                 </ul>
+                <br></br>
                 <button className="leave-button" onClick={handleLeaveMeeting}>나가기</button>
             </section>
 
