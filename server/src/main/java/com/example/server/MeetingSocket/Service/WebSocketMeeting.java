@@ -11,55 +11,98 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-// websoket 서버 구현
-// controller는 RestAPI 이므로 http 요청-응답 상태이다.
-// 그러므로 양방향 통신인 웹소켓에서는 http가 아니라 ws를 사용하기 때문에 controller가 필요없다.
-// 따라서 service 패키지에서 바로 데이터를 주고 받으므로 이 패키지에 두는 것이 맞음
 @Service
 @ServerEndpoint("/socket/meeting")
 public class WebSocketMeeting {
-    // websocket에 연결된 클라이언트 세션을 저장하는 동기화된 Set
-    private static Set<Session> clients = Collections.synchronizedSet(new HashSet<Session>());
-    // 로깅을 위한 Logger 인스턴스
+    private static Set<Session> clients = Collections.synchronizedSet(ConcurrentHashMap.newKeySet());
+    private static Map<Session, String> sessionNicknameMap = new ConcurrentHashMap<>();
     private static Logger logger = LoggerFactory.getLogger(WebSocketMeeting.class);
 
-    // 클라이언트가 WebSocket에 연결될 때 호출되는 메서드
-    // 세션 정보를 받음
+    // 새로운 클라이언트가 접속할 때 호출됩니다.
     @OnOpen
     public void onOpen(Session session) {
-        logger.info("open session : {}, clients={}", session.toString(), clients);
+        logger.info("New session connected: {}", session);
+        clients.add(session);
 
-        // 새로운 세션을 clients sets에 추가
-        if(!clients.contains(session)) {
-            clients.add(session);
-            logger.info("session open : {}", session);
-        }else{
-            logger.info("이미 연결된 session");
-        }
+        // 새로 접속한 클라이언트에게 현재 참여자 목록을 전송
+        sendCurrentParticipants(session);
     }
 
-    // 클라이언트가 메시지를 보낼 때 호출되는 메서드
-    // 클라이언트가 보낸 메시지와 세션정보, IOException 발생가능을 받음
+    // 클라이언트로부터 메시지를 받았을 때 호출됩니다.
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
-        logger.info("receive message : {}", message);
+        logger.info("Message received: {}", message);
 
-        // 모든 클라이언트에게 메시지를 전송
-        for (Session s : clients) {
-            logger.info("send data : {}", message);
-            s.getBasicRemote().sendText(message); // 메시지를 타입별로 전송
+        if (message.startsWith("nickname:")) {
+            // 닉네임 설정
+            String nickname = message.substring(9).trim();
+
+            if (sessionNicknameMap.containsValue(nickname)) {
+                session.getBasicRemote().sendText("error:이미 사용 중인 닉네임입니다.");
+                return;
+            }
+
+            sessionNicknameMap.put(session, nickname);
+            logger.info("New nickname added: {}", nickname);
+
+            // 닉네임 업데이트를 브로드캐스트
+            broadcast("nicknames:" + String.join(", ", sessionNicknameMap.values()));
+        } else if (message.startsWith("leave:")) {
+            // 클라이언트가 나갈 때 처리
+            handleClientLeave(session);
+        } else {
+            // 일반 메시지 브로드캐스팅
+            broadcast(message);
         }
     }
 
-    // 클라이언트와의 WebSocket 연결이 닫힐 때 호출되는 메서드
-    // 연결이 종료된 클라이언트의 세션 정보를 받음
+    // 클라이언트가 소켓을 닫을 때 호출됩니다.
     @OnClose
     public void onClose(Session session) {
-        logger.info("session close : {}", session);
-        // 연결이 종료된 세션을 client Sets에서 제거
-        clients.remove(session);
+        logger.info("Session closed: {}", session);
+        handleClientLeave(session);
+    }
+
+    // 클라이언트가 회의를 떠났을 때 처리하는 메서드
+    private void handleClientLeave(Session session) {
+        String nickname = sessionNicknameMap.remove(session);
+        if (nickname != null) {
+            logger.info("Client left: {}", nickname);
+            clients.remove(session);
+
+            try {
+                // 회의에서 나갔음을 브로드캐스트
+                broadcast("leave:" + nickname + "님이 회의에서 나갔습니다.");
+                // 참여자 목록을 다시 브로드캐스트
+                broadcast("nicknames:" + String.join(", ", sessionNicknameMap.values()));
+            } catch (IOException e) {
+                logger.error("Error broadcasting leave message", e);
+            }
+        }
+    }
+
+    // 모든 클라이언트에게 메시지를 브로드캐스트하는 메서드
+    private void broadcast(String message) throws IOException {
+        synchronized (clients) {
+            for (Session client : clients) {
+                if (client.isOpen()) {
+                    client.getBasicRemote().sendText(message);
+                }
+            }
+        }
+    }
+
+    // 새로 접속한 클라이언트에게 현재 참여자 목록을 전송하는 메서드
+    private void sendCurrentParticipants(Session session) {
+        try {
+            // 현재 참여자 목록을 전송
+            session.getBasicRemote().sendText("nicknames:" + String.join(", ", sessionNicknameMap.values()));
+        } catch (IOException e) {
+            logger.error("Error sending current participants", e);
+        }
     }
 }
