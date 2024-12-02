@@ -21,6 +21,7 @@ public class WebSocketMeeting {
     private static Set<Session> clients = Collections.synchronizedSet(ConcurrentHashMap.newKeySet());
     private static Map<Session, String> sessionNicknameMap = new ConcurrentHashMap<>();
     private static Logger logger = LoggerFactory.getLogger(WebSocketMeeting.class);
+    private static Map<Session, String> meetingNotes = new ConcurrentHashMap<>(); // 전체 회의록 저장
 
     // 새로운 클라이언트가 접속할 때 호출됩니다.
     @OnOpen
@@ -30,6 +31,7 @@ public class WebSocketMeeting {
 
         // 새로 접속한 클라이언트에게 현재 참여자 목록을 전송
         sendCurrentParticipants(session);
+        sendCurrentContents(session);
     }
 
     // 클라이언트로부터 메시지를 받았을 때 호출됩니다.
@@ -103,6 +105,18 @@ public class WebSocketMeeting {
             session.getBasicRemote().sendText("nicknames:" + String.join(", ", sessionNicknameMap.values()));
         } catch (IOException e) {
             logger.error("Error sending current participants", e);
+        }
+    }
+
+    // 새로 접속한 클라이언트에게 현재 회의록 내용을 전송하는 메서드
+    private void sendCurrentContents(Session session) {
+        try{
+            //회의 카테고리별로 나눠서 데이터 전송하기
+            
+            
+            session.getBasicRemote().sendText("contents:" + String.join(",", meetingNotes.values()));
+        } catch (IOException e) {
+            logger.error("Error sending current contents", e);
         }
     }
 }

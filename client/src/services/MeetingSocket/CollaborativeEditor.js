@@ -47,6 +47,7 @@ function CollaborativeEditor() {
                             ...prevMessages,
                             `${joiningNickname}님이 회의에 참여하였습니다.`,
                         ]);
+                        console.log("소켓이 연결되었습니다.")
                     }
                     else {
                         console.error("Unrecognized message format:", event.data);
